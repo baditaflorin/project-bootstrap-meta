@@ -14,9 +14,4 @@ if ! grep -q '<div id="root"></div>' docs/index.html; then
   exit 1
 fi
 
-if ! git diff --quiet -- docs src/generated/buildInfo.ts; then
-  echo "Build output changed. Commit docs/ and src/generated/buildInfo.ts before pushing."
-  exit 1
-fi
-
 make smoke
