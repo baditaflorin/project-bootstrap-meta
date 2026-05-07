@@ -20,9 +20,20 @@ const sourceRef = headSubject.startsWith('ops: publish') ? 'HEAD^' : 'HEAD';
 const sourceCommitSubject = runGit(['log', '-1', '--pretty=%s', sourceRef], 'unknown');
 const sourceCommit = runGit(['rev-parse', '--short=12', sourceRef], commit);
 const fullCommit = runGit(['rev-parse', sourceRef], 'unknown');
-const builtAt = new Date().toISOString();
-
 const outputPath = resolve(root, 'src/generated/buildInfo.ts');
+const existingBuildInfo = (() => {
+  try {
+    return readFileSync(outputPath, 'utf8');
+  } catch {
+    return '';
+  }
+})();
+
+const existingCommit = existingBuildInfo.match(/"commit": "([^"]+)"/)?.[1];
+const existingBuiltAt = existingBuildInfo.match(/"builtAt": "([^"]+)"/)?.[1];
+const builtAt =
+  existingCommit === sourceCommit && existingBuiltAt ? existingBuiltAt : new Date().toISOString();
+
 mkdirSync(dirname(outputPath), { recursive: true });
 writeFileSync(
   outputPath,
