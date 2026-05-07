@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">Project Bootstrap Meta icon</title>
+  <rect width="512" height="512" rx="96" fill="#f7f7f0"/>
+  <path d="M112 348c44-68 94-102 150-102 40 0 70 14 90 41 13 17 24 38 33 61" fill="none" stroke="#0f766e" stroke-width="34" stroke-linecap="round"/>
+  <path d="M124 178h264M124 254h96M292 254h96" fill="none" stroke="#23302a" stroke-width="30" stroke-linecap="round"/>
+  <circle cx="124" cy="348" r="28" fill="#d97706"/>
+  <circle cx="256" cy="246" r="28" fill="#0f766e"/>
+  <circle cx="388" cy="348" r="28" fill="#2563eb"/>
+</svg>
