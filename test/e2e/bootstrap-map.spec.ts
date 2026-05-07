@@ -8,7 +8,7 @@ test('published bootstrap map loads and tracks one happy path', async ({ page })
     }
   });
 
-  await page.goto('/');
+  await page.goto('./');
   await expect(page.getByRole('heading', { name: 'Project Bootstrap Meta' })).toBeVisible();
   await expect(page.getByRole('link', { name: /star the repository/i })).toHaveAttribute(
     'href',
