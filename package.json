@@ -1,0 +1,49 @@
+{
+  "name": "project-bootstrap-meta",
+  "version": "0.1.0",
+  "private": false,
+  "description": "A GitHub Pages-first bootstrap map for disciplined project setup.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "generate:build-info": "node scripts/generate-build-info.mjs",
+    "build": "npm run generate:build-info && tsc -b && node scripts/clean-pages-assets.mjs && vite build && node scripts/prepare-pages.mjs",
+    "preview": "vite preview --outDir docs",
+    "test": "vitest run --coverage",
+    "test:watch": "vitest",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "lint": "eslint . && prettier --check . && tsc -b --noEmit && npm audit --audit-level=high",
+    "fmt": "prettier --write .",
+    "smoke": "playwright test --config playwright.config.ts"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.90.12",
+    "@tailwindcss/vite": "^4.1.17",
+    "lucide-react": "^0.555.0",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
+    "tailwindcss": "^4.1.17",
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@playwright/test": "^1.57.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "@vitest/coverage-v8": "^4.0.14",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "jsdom": "^27.2.0",
+    "prettier": "^3.7.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.48.1",
+    "vite": "^7.2.6",
+    "vitest": "^4.0.14"
+  }
+}
