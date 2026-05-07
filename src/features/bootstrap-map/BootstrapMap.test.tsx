@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { describe, expect, it } from 'vitest';
+import { appMetadata } from '../../shared/metadata';
 import { BootstrapMap } from './BootstrapMap';
 
 function renderMap() {
@@ -33,7 +34,7 @@ describe('BootstrapMap', () => {
       'https://www.paypal.com/paypalme/florinbadita'
     );
     expect(screen.getAllByText('0.1.0')).not.toHaveLength(0);
-    expect(screen.getAllByText('dev')).not.toHaveLength(0);
+    expect(screen.getAllByText(appMetadata.commit)).not.toHaveLength(0);
   });
 
   it('tracks checklist progress and can reset it', () => {

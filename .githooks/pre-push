@@ -1,0 +1,22 @@
+#!/usr/bin/env sh
+set -eu
+
+make test
+make build
+
+if [ ! -s docs/index.html ]; then
+  echo "docs/index.html is missing or empty after build."
+  exit 1
+fi
+
+if ! grep -q '<div id="root"></div>' docs/index.html; then
+  echo "docs/index.html does not look like the Vite app shell."
+  exit 1
+fi
+
+if ! git diff --quiet -- docs src/generated/buildInfo.ts; then
+  echo "Build output changed. Commit docs/ and src/generated/buildInfo.ts before pushing."
+  exit 1
+fi
+
+make smoke

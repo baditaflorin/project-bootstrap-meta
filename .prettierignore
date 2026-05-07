@@ -1,0 +1,12 @@
+coverage/
+docs/404.html
+docs/assets/
+docs/icon.svg
+docs/index.html
+docs/screenshot.png
+docs/site.webmanifest
+docs/sw.js
+node_modules/
+playwright-report/
+src/generated/buildInfo.ts
+test-results/

@@ -1,0 +1,8 @@
+title = "Project Bootstrap Meta gitleaks config"
+
+[allowlist]
+description = "Public project URLs and generated static assets are allowed."
+paths = [
+  '''package-lock\.json''',
+  '''docs/assets/.*\.map'''
+]
