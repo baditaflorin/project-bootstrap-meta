@@ -1,13 +1,15 @@
 #!/usr/bin/env sh
 set -eu
 
-PORT="${PORT:-4173}"
+if [ -z "${PORT:-}" ]; then
+  PORT="$(node -e "const net = require('node:net'); const server = net.createServer(); server.listen(0, '127.0.0.1', () => { console.log(server.address().port); server.close(); });")"
+fi
 BASE_URL="http://127.0.0.1:${PORT}/project-bootstrap-meta/"
 LOG_FILE="${TMPDIR:-/tmp}/project-bootstrap-meta-preview.log"
 
 npm run build
 
-npm run preview -- --host 127.0.0.1 --port "$PORT" >"$LOG_FILE" 2>&1 &
+npm run preview -- --host 127.0.0.1 --port "$PORT" --strictPort >"$LOG_FILE" 2>&1 &
 SERVER_PID=$!
 
 cleanup() {
