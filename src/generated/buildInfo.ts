@@ -1,9 +1,9 @@
 export const buildInfo = {
   "version": "0.1.0",
-  "commit": "f568baedcce8",
-  "fullCommit": "f568baedcce8d7295a2704fc5a3961a4dfbc7c30",
-  "sourceCommitSubject": "fix: make build metadata reproducible",
-  "builtAt": "2026-05-07T22:57:50.406Z",
+  "commit": "aeac3b9276f2",
+  "fullCommit": "aeac3b9276f2b1d3e7fb607df4c477bd9463ffce",
+  "sourceCommitSubject": "fix: use free strict smoke port",
+  "builtAt": "2026-05-07T23:03:22.976Z",
   "repositoryUrl": "https://github.com/baditaflorin/project-bootstrap-meta",
   "paypalUrl": "https://www.paypal.com/paypalme/florinbadita",
   "liveUrl": "https://baditaflorin.github.io/project-bootstrap-meta/"
