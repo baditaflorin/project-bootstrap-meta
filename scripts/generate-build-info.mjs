@@ -15,7 +15,11 @@ const runGit = (args, fallback) => {
 };
 
 const commit = runGit(['rev-parse', '--short=12', 'HEAD'], 'unknown');
-const fullCommit = runGit(['rev-parse', 'HEAD'], 'unknown');
+const headSubject = runGit(['log', '-1', '--pretty=%s'], '');
+const sourceRef = headSubject.startsWith('ops: publish') ? 'HEAD^' : 'HEAD';
+const sourceCommitSubject = runGit(['log', '-1', '--pretty=%s', sourceRef], 'unknown');
+const sourceCommit = runGit(['rev-parse', '--short=12', sourceRef], commit);
+const fullCommit = runGit(['rev-parse', sourceRef], 'unknown');
 const builtAt = new Date().toISOString();
 
 const outputPath = resolve(root, 'src/generated/buildInfo.ts');
@@ -25,8 +29,9 @@ writeFileSync(
   `export const buildInfo = ${JSON.stringify(
     {
       version: packageJson.version,
-      commit,
+      commit: sourceCommit,
       fullCommit,
+      sourceCommitSubject,
       builtAt,
       repositoryUrl: 'https://github.com/baditaflorin/project-bootstrap-meta',
       paypalUrl: 'https://www.paypal.com/paypalme/florinbadita',
