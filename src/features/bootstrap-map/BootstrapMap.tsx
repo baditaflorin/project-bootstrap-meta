@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Check,
   ChevronDown,
@@ -9,11 +9,19 @@ import {
   GitBranch,
   Heart,
   RotateCcw,
+  Search,
   Sparkles,
-  Star
+  Star,
+  X
 } from 'lucide-react';
 import { appMetadata } from '../../shared/metadata';
-import { bootstrapPhases, projectPrinciples, type BootstrapItem } from './bootstrapData';
+import {
+  bootstrapPhases,
+  projectPrinciples,
+  type BootstrapItem,
+  type BootstrapPhase
+} from './bootstrapData';
+import { filterPhases } from './filter';
 import { getPhaseCompletion } from './progress';
 import { useBootstrapProgress } from './useBootstrapProgress';
 
@@ -78,7 +86,7 @@ function ItemDetails({ item }: { item: BootstrapItem }) {
                 {copyState === 'copied' ? 'Copied' : copyState === 'error' ? 'Copy failed' : 'Copy'}
               </button>
             </div>
-            <pre className="mt-2 overflow-x-auto rounded-md bg-[#0b1410] p-3 text-xs leading-5 text-[#e6f1ea]">
+            <pre className="mt-2 max-h-72 overflow-auto whitespace-pre-wrap break-words rounded-md bg-[#0b1410] p-3 text-xs leading-5 text-[#e6f1ea] lg:max-h-none lg:overflow-x-auto lg:whitespace-pre lg:break-normal">
               <code>{item.snippet.code}</code>
             </pre>
           </div>
@@ -88,8 +96,47 @@ function ItemDetails({ item }: { item: BootstrapItem }) {
   );
 }
 
+function readQueryFromLocation(): string {
+  if (typeof window === 'undefined') return '';
+  try {
+    return new URL(window.location.href).searchParams.get('q') ?? '';
+  } catch {
+    return '';
+  }
+}
+
+function syncQueryToLocation(query: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const url = new URL(window.location.href);
+    const trimmed = query.trim();
+    if (trimmed) {
+      url.searchParams.set('q', trimmed);
+    } else {
+      url.searchParams.delete('q');
+    }
+    // Use replaceState — typing in the search box shouldn't push a new
+    // history entry per keystroke.
+    window.history.replaceState({}, '', url.toString());
+  } catch {
+    // ignore — running in environments without a proper URL.
+  }
+}
+
 export function BootstrapMap() {
-  const phases = bootstrapPhases;
+  const [query, setQuery] = useState(readQueryFromLocation);
+
+  useEffect(() => {
+    syncQueryToLocation(query);
+  }, [query]);
+
+  const phases: BootstrapPhase[] = useMemo(() => filterPhases(bootstrapPhases, query), [query]);
+
+  const totalItemsInRepo = useMemo(
+    () => bootstrapPhases.reduce((sum, p) => sum + p.items.length, 0),
+    []
+  );
+  const visibleItems = useMemo(() => phases.reduce((sum, p) => sum + p.items.length, 0), [phases]);
 
   const { progress, completed, total, percentComplete, errorMessage, toggleItem, markAll, reset } =
     useBootstrapProgress();
@@ -97,7 +144,7 @@ export function BootstrapMap() {
   return (
     <main className="min-h-screen bg-[#f7f7f0] text-[#17201b]">
       <section className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-5 sm:px-6 lg:px-8">
-        <header className="grid gap-5 border-b border-[#d9dccf] pb-6 lg:grid-cols-[1fr_360px] lg:items-end">
+        <header className="grid gap-5 border-b border-[#d9dccf] pb-6 grid-cols-1 lg:grid-cols-[1fr_360px] lg:items-end">
           <div>
             <p className="inline-flex items-center gap-2 rounded-md border border-[#c7d2ca] bg-white px-3 py-1 text-xs font-bold uppercase text-[#0f766e]">
               <Sparkles aria-hidden="true" size={14} />
@@ -245,7 +292,42 @@ export function BootstrapMap() {
           ))}
         </section>
 
-        <section aria-label="Bootstrap map" className="grid gap-4 lg:grid-cols-3">
+        <section aria-label="Search the bootstrap map" className="flex flex-col gap-2">
+          <label className="flex items-center gap-2 rounded-md border border-[#c7d2ca] bg-white px-3 py-2 shadow-sm focus-within:border-[#0f766e] focus-within:ring-2 focus-within:ring-[#0f766e]">
+            <Search aria-hidden="true" size={18} className="text-[#5f695f]" />
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder='Filter — try "security", "tests", or "conventional commits"'
+              className="min-h-11 w-full bg-transparent text-base font-medium text-[#17201b] placeholder:font-normal placeholder:text-[#7a847a] focus:outline-none"
+              aria-label="Filter bootstrap items"
+              autoComplete="off"
+              spellCheck={false}
+            />
+            {query ? (
+              <button
+                type="button"
+                className="grid h-11 w-11 place-items-center rounded-md text-[#5f695f] hover:bg-[#eef0e8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f766e]"
+                onClick={() => setQuery('')}
+                aria-label="Clear filter"
+              >
+                <X aria-hidden="true" size={18} />
+              </button>
+            ) : null}
+          </label>
+          {query.trim() ? (
+            <p className="text-sm text-[#4a554d]" aria-live="polite">
+              Showing {visibleItems} of {totalItemsInRepo} items
+              {phases.length === 0 ? ' — nothing matches. Try a shorter query.' : null}
+            </p>
+          ) : null}
+        </section>
+
+        <section
+          aria-label="Bootstrap map"
+          className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+        >
           {phases.map((phase) => {
             const completion = getPhaseCompletion(phase, progress);
 
@@ -294,25 +376,25 @@ export function BootstrapMap() {
                       <li key={item.id}>
                         <div className="rounded-md border border-[#d9dccf] bg-[#fbfcf7] p-3">
                           <button
-                            className="grid w-full grid-cols-[28px_1fr] gap-3 rounded-md text-left hover:bg-[#f3f5ed]"
+                            className="grid w-full grid-cols-[44px_1fr] items-start gap-3 rounded-md p-1 text-left hover:bg-[#f3f5ed] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f766e] focus-visible:ring-offset-2"
                             type="button"
                             aria-pressed={checked}
                             onClick={() => toggleItem(item.id)}
                           >
                             <span
-                              className={`mt-0.5 grid h-7 w-7 place-items-center rounded-full border ${
+                              className={`mt-0 grid h-11 w-11 place-items-center rounded-full border ${
                                 checked
                                   ? 'border-[#0f766e] bg-[#0f766e] text-white'
                                   : 'border-[#9aa394] bg-white text-[#6b766e]'
                               }`}
                             >
                               {checked ? (
-                                <Check aria-hidden="true" size={16} />
+                                <Check aria-hidden="true" size={22} />
                               ) : (
-                                <Circle aria-hidden="true" size={12} />
+                                <Circle aria-hidden="true" size={16} />
                               )}
                             </span>
-                            <span>
+                            <span className="self-center">
                               <span className="block text-sm font-bold text-[#17201b]">
                                 {item.label}
                               </span>
