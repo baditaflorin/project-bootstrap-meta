@@ -1,23 +1,10 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { describe, expect, it } from 'vitest';
 import { appMetadata } from '../../shared/metadata';
 import { BootstrapMap } from './BootstrapMap';
 
 function renderMap() {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: 0
-      }
-    }
-  });
-
-  return render(
-    <QueryClientProvider client={queryClient}>
-      <BootstrapMap />
-    </QueryClientProvider>
-  );
+  return render(<BootstrapMap />);
 }
 
 describe('BootstrapMap', () => {
@@ -50,5 +37,20 @@ describe('BootstrapMap', () => {
       within(screen.getByLabelText('Project progress')).getByRole('button', { name: /^reset$/i })
     );
     expect(screen.getByText('0/27 checks')).toBeInTheDocument();
+  });
+
+  it('exposes references and a copyable snippet for items that have them', () => {
+    window.localStorage.clear();
+    renderMap();
+
+    // Conventional Commits item has both a reference link and a snippet.
+    expect(screen.getByRole('link', { name: /conventional commits 1\.0\.0/i })).toHaveAttribute(
+      'href',
+      'https://www.conventionalcommits.org/en/v1.0.0/'
+    );
+    expect(screen.getByText(/feat\(parser\): accept newline at end of file/)).toBeInTheDocument();
+
+    // The bundle-budget snippet is real, not a placeholder.
+    expect(screen.getByText(/200 \* 1024/)).toBeInTheDocument();
   });
 });

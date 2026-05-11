@@ -1,7 +1,9 @@
-import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 import {
   Check,
+  ChevronDown,
   Circle,
+  Copy,
   ExternalLink,
   GitFork,
   GitBranch,
@@ -11,15 +13,83 @@ import {
   Star
 } from 'lucide-react';
 import { appMetadata } from '../../shared/metadata';
-import { bootstrapPhases, projectPrinciples } from './bootstrapData';
+import { bootstrapPhases, projectPrinciples, type BootstrapItem } from './bootstrapData';
 import { getPhaseCompletion } from './progress';
 import { useBootstrapProgress } from './useBootstrapProgress';
 
+function ItemDetails({ item }: { item: BootstrapItem }) {
+  const [copyState, setCopyState] = useState<'idle' | 'copied' | 'error'>('idle');
+
+  if (!item.references && !item.snippet) {
+    return null;
+  }
+
+  const onCopy = async () => {
+    if (!item.snippet) return;
+    try {
+      await navigator.clipboard.writeText(item.snippet.code);
+      setCopyState('copied');
+      window.setTimeout(() => setCopyState('idle'), 1500);
+    } catch {
+      setCopyState('error');
+      window.setTimeout(() => setCopyState('idle'), 2000);
+    }
+  };
+
+  return (
+    <details className="mt-2 rounded-md border border-[#d9dccf] bg-white">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2 text-xs font-bold uppercase text-[#0f766e]">
+        <span>References &amp; snippet</span>
+        <ChevronDown aria-hidden="true" size={14} />
+      </summary>
+      <div className="border-t border-[#e4e6d9] p-3">
+        {item.references && item.references.length > 0 ? (
+          <ul className="flex flex-col gap-1 text-sm">
+            {item.references.map((reference) => (
+              <li key={reference.url}>
+                <a
+                  className="inline-flex items-center gap-1 font-bold text-[#0f766e] hover:text-[#115e59]"
+                  href={reference.url}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  <span>{reference.label}</span>
+                  <ExternalLink aria-hidden="true" size={12} />
+                </a>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        {item.snippet ? (
+          <div className="mt-3">
+            <div className="flex items-center justify-between gap-2 text-xs font-bold uppercase text-[#5f695f]">
+              <span>
+                {item.snippet.filename ?? item.snippet.language}
+                <span className="ml-2 font-mono text-[10px] font-normal text-[#7a847a]">
+                  {item.snippet.language}
+                </span>
+              </span>
+              <button
+                className="inline-flex items-center gap-1 rounded border border-[#c7d2ca] bg-[#fbfcf7] px-2 py-1 text-xs font-bold text-[#17201b] hover:bg-[#eef0e8]"
+                type="button"
+                onClick={() => void onCopy()}
+              >
+                <Copy aria-hidden="true" size={12} />
+                {copyState === 'copied' ? 'Copied' : copyState === 'error' ? 'Copy failed' : 'Copy'}
+              </button>
+            </div>
+            <pre className="mt-2 overflow-x-auto rounded-md bg-[#0b1410] p-3 text-xs leading-5 text-[#e6f1ea]">
+              <code>{item.snippet.code}</code>
+            </pre>
+          </div>
+        ) : null}
+      </div>
+    </details>
+  );
+}
+
 export function BootstrapMap() {
-  const { data: phases = bootstrapPhases } = useQuery({
-    queryKey: ['bootstrap-phases', appMetadata.version],
-    queryFn: () => bootstrapPhases
-  });
+  const phases = bootstrapPhases;
 
   const { progress, completed, total, percentComplete, errorMessage, toggleItem, markAll, reset } =
     useBootstrapProgress();
@@ -222,34 +292,37 @@ export function BootstrapMap() {
 
                     return (
                       <li key={item.id}>
-                        <button
-                          className="grid w-full grid-cols-[28px_1fr] gap-3 rounded-md border border-[#d9dccf] bg-[#fbfcf7] p-3 text-left hover:border-[#0f766e] hover:bg-[#f3f5ed]"
-                          type="button"
-                          aria-pressed={checked}
-                          onClick={() => toggleItem(item.id)}
-                        >
-                          <span
-                            className={`mt-0.5 grid h-7 w-7 place-items-center rounded-full border ${
-                              checked
-                                ? 'border-[#0f766e] bg-[#0f766e] text-white'
-                                : 'border-[#9aa394] bg-white text-[#6b766e]'
-                            }`}
+                        <div className="rounded-md border border-[#d9dccf] bg-[#fbfcf7] p-3">
+                          <button
+                            className="grid w-full grid-cols-[28px_1fr] gap-3 rounded-md text-left hover:bg-[#f3f5ed]"
+                            type="button"
+                            aria-pressed={checked}
+                            onClick={() => toggleItem(item.id)}
                           >
-                            {checked ? (
-                              <Check aria-hidden="true" size={16} />
-                            ) : (
-                              <Circle aria-hidden="true" size={12} />
-                            )}
-                          </span>
-                          <span>
-                            <span className="block text-sm font-bold text-[#17201b]">
-                              {item.label}
+                            <span
+                              className={`mt-0.5 grid h-7 w-7 place-items-center rounded-full border ${
+                                checked
+                                  ? 'border-[#0f766e] bg-[#0f766e] text-white'
+                                  : 'border-[#9aa394] bg-white text-[#6b766e]'
+                              }`}
+                            >
+                              {checked ? (
+                                <Check aria-hidden="true" size={16} />
+                              ) : (
+                                <Circle aria-hidden="true" size={12} />
+                              )}
                             </span>
-                            <span className="mt-1 block text-sm leading-5 text-[#4a554d]">
-                              {item.detail}
+                            <span>
+                              <span className="block text-sm font-bold text-[#17201b]">
+                                {item.label}
+                              </span>
+                              <span className="mt-1 block text-sm leading-5 text-[#4a554d]">
+                                {item.detail}
+                              </span>
                             </span>
-                          </span>
-                        </button>
+                          </button>
+                          <ItemDetails item={item} />
+                        </div>
                       </li>
                     );
                   })}
